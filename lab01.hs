@@ -78,3 +78,55 @@ match ((k, v):db) value
     | otherwise     = match db value
 
 --5
+bhfilter :: Ord a => [a] -> a -> [a]
+bhfilter [] _ = []
+bhfilter (x:xs) n
+    | x < n     = x:bhfilter xs n
+    | otherwise = bhfilter xs n
+
+bhreverse :: [a] -> [a]
+bhreverse xs = go xs []
+    where
+        go :: [a] -> [a] -> [a]
+        go [] acc = acc
+        go (x:xs) acc = go xs (x:acc)
+
+concatenate :: [[a]] -> [a]
+concatenate [] = []
+concatenate ([]:xs) = concatenate xs
+concatenate ((x:xs):xss) = x:concatenate (xs:xss)
+
+--6
+quicksort :: Ord a => [a] -> [a]
+quicksort [] = []
+quicksort (x:xs) = go x xs
+    where
+        go :: Ord a => a -> [a] -> [a]
+        go x xs = concatenate [low, [x], high]
+            where 
+                low = quicksort . filt (\x n -> x < n) xs $ x
+                high = quicksort . filt (\x n -> x >= n) xs $ x
+
+                filt :: Ord a => (a -> a -> Bool) -> [a] -> a -> [a]
+                filt _ [] _ = []
+                filt pred (x:xs) n
+                    | pred x n  = x:filt pred xs n
+                    | otherwise = filt pred xs n
+
+
+
+mergesort :: Ord a => [a] -> [a]
+mergesort [] = []
+mergesort [x] = [x]
+mergesort xs = merge (mergesort . chunk take $ xs) (mergesort . chunk drop $ xs)
+    where
+        chunk :: (Ord a) => (Int -> [a] -> [a]) -> [a] -> [a]
+        chunk func xs = func (length xs `div` 2) xs
+
+        merge :: (Ord a) => [a] -> [a] -> [a]
+        merge [] [] = []
+        merge [] xs = xs
+        merge xs [] = xs
+        merge (x:xs) (y:ys)
+            | x <= y    = x:merge xs (y:ys)
+            | otherwise = y:merge (x:xs) ys
