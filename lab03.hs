@@ -33,18 +33,15 @@ isort = foldr sort []
             | otherwise = y:sort x ys
 
 --2.2
+point :: Num a => a -> a -> a -> a
+point x a1 a0 = a1*x + a0
+
 fromBinary :: [Integer] -> Integer
-fromBinary = foldl fold 0
-    where
-        fold :: Integer -> Integer -> Integer
-        fold b1 b0 = b1*2 + b0
+fromBinary = foldl (point 2) 0
 
 --2.3
 polynomial :: Num a => [a] -> a -> a
-polynomial xs a = foldl (fold a) 0 xs
-    where
-        fold :: Num a => a -> a -> a -> a
-        fold x a1 a0 = a1*x + a0
+polynomial xs a = foldl (point a) 0 xs
 
 --2.4
 sums :: Num a => [a] -> [a]

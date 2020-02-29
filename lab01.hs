@@ -127,6 +127,6 @@ mergesort xs = merge (mergesort . chunk take $ xs) (mergesort . chunk drop $ xs)
         merge [] [] = []
         merge [] xs = xs
         merge xs [] = xs
-        merge (x:xs) (y:ys)
-            | x <= y    = x:merge xs (y:ys)
-            | otherwise = y:merge (x:xs) ys
+        merge a@(x:xs) b@(y:ys)
+            | x <= y    = x:merge xs b
+            | otherwise = y:merge a ys

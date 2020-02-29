@@ -7,9 +7,9 @@ bhtakeWhile pred (x:xs)
 
 bhdropWhile :: (a -> Bool) -> [a] -> [a]
 bhdropWhile pred [] = []
-bhdropWhile pred (x:xs)
+bhdropWhile pred a@(x:xs)
     | pred x    = bhdropWhile pred xs
-    | otherwise = (x:xs)
+    | otherwise = a
 
 bhiterate :: (a -> a) -> a -> [a]
 bhiterate func a = a:bhiterate func (func a)
@@ -42,20 +42,14 @@ histogram = foldr hist []
             | a == x    = (x, n+1):xs
             | otherwise = (x, n):hist a xs
 
+sort :: Ord a => (a, Int) -> [(a, Int)] -> [(a, Int)]
+sort x [] = [x]
+sort (a, b) ((x, n):xs)
+    | a < x     = (a, b):(x, n):xs
+    | a > x     = (x, n):sort (a, b) xs
+
 permInv :: [Int] -> [Int]
 permInv = snd . unzip . foldr sort [] . flip zip [1..]
-    where
-        sort :: (Int, Int) -> [(Int, Int)] -> [(Int, Int)]
-        sort x [] = [x]
-        sort (a, b) ((x, n):xs)
-            | a < x     = (a, b):(x, n):xs
-            | a > x     = (x, n):sort (a, b) xs
 
 indSorted :: Ord a => [a] -> [Int]
 indSorted = snd . unzip . foldr sort [] . flip zip [1..]
-    where
-        sort :: Ord a => (a, Int) -> [(a, Int)] -> [(a, Int)]
-        sort x [] = [x]
-        sort (a, b) ((x, n):xs)
-            | a < x     = (a, b):(x, n):xs
-            | a > x     = (x, n):sort (a, b) xs
