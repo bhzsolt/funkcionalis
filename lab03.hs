@@ -1,3 +1,7 @@
+--Bodoki-Halmen Zsolt
+--bzim1700
+--531/1
+
 --1
 bhminimum :: Ord a => [a] -> a
 bhminimum (x:xs) = foldr fold x xs
@@ -45,6 +49,7 @@ polynomial xs a = foldl (point a) 0 xs
 
 --2.4
 sums :: Num a => [a] -> [a]
+sums [] = []
 sums (x:xs) = scanl (+) x xs
 
 --2.5

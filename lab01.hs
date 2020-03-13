@@ -1,3 +1,7 @@
+--Bodoki-Halmen Zsolt
+--bzim1700
+--531/1
+
 --1
 bhsum :: (Num a, Eq a, Ord a) => a -> a
 bhsum n
@@ -104,16 +108,14 @@ quicksort (x:xs) = go x xs
         go :: Ord a => a -> [a] -> [a]
         go x xs = concatenate [low, [x], high]
             where 
-                low = quicksort . filt (\x n -> x < n) xs $ x
-                high = quicksort . filt (\x n -> x >= n) xs $ x
+                low = quicksort . filt (<) xs $ x
+                high = quicksort . filt (>=) xs $ x
 
                 filt :: Ord a => (a -> a -> Bool) -> [a] -> a -> [a]
                 filt _ [] _ = []
                 filt pred (x:xs) n
                     | pred x n  = x:filt pred xs n
                     | otherwise = filt pred xs n
-
-
 
 mergesort :: Ord a => [a] -> [a]
 mergesort [] = []

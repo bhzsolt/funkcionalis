@@ -1,3 +1,7 @@
+--Bodoki-Halmen Zsolt
+--bzim1700
+--531/1
+
 --1
 bhtakeWhile :: (a -> Bool) -> [a] -> [a]
 bhtakeWhile pred [] = []
