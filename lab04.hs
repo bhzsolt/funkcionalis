@@ -129,13 +129,32 @@ instance Foldable Array where
     foldr f e (Array (x0, x1, x2, x3))  = foldr f (foldr f (foldr f (foldr f e x3) x2) x1) x0
 
 
+portion :: Int -> (Int, Int, Int, Int)
+portion n = portionacc n (0, 0, 0, 0)
+    where 
+        portionacc :: Int -> (Int, Int, Int, Int) -> (Int, Int, Int, Int)
+        portionacc n x@(a, b, c, d) 
+            | n == 0    = x
+            | n < 4     = go n x
+            | (a-b) < 4 && (a-c) < 4 && (a-d) < 4 = portionacc (n-4) ((a+4), b, c, d)
+            | (b-c) < 4 && (b-d) < 4              = portionacc (n-4) (a, (b+4), c, d)
+            | (c-d) < 4                           = portionacc (n-4) (a, b, (c+4), d)
+            | otherwise                           = portionacc (n-4) (a, b, c, (d+4))
+        
+        go :: Int -> (Int, Int, Int, Int) -> (Int, Int, Int, Int)
+        go n (a, b, c, d)
+            | (a-b) < 4 && (a-c) < 4 && (a-d) < 4 = ((a+n), b, c, d)
+            | (b-c) < 4 && (b-d) < 4              = (a, (b+n), c, d)
+            | (c-d) < 4                           = (a, b, (c+n), d)
+            | otherwise                           = (a, b, c, (d+n))
+
 fromList :: [a] -> Array a
 fromList xs
     | length xs == 0    = Empty
     | length xs <= 4    = fromSmallList xs
     | otherwise         = Array (fromList xs0, fromList xs1, fromList xs2, fromList xs3) 
         where
-            (n0, n1, n2, n3) = portion (length xs) (0, 0, 0, 0)
+            (n0, n1, n2, n3) = portion (length xs) 
             xs0 = take n0 xs
             xs1 = take n1 . drop n0             $ xs
             xs2 = take n2 . drop (n0 + n1)      $ xs
@@ -163,37 +182,32 @@ new a n
     | n == 4    = Array (Leaf a, Leaf a, Leaf a, Leaf a)
     | otherwise = Array (new a n0, new a n1, new a n2, new a n3)
         where
-            (n0, n1, n2, n3) = portion n (0, 0, 0, 0)
+            (n0, n1, n2, n3) = portion n
 
-portion :: Int -> (Int, Int, Int, Int) -> (Int, Int, Int, Int)
-portion n x@(a, b, c, d)
-    | n == 0    = x
-    | n < 4     = go n x
-    | (a-b) < 4 && (a-c) < 4 && (a-d) < 4 = portion (n-4) ((a+4), b, c, d)
-    | (b-c) < 4 && (b-d) < 4 = portion (n-4) (a, (b+4), c, d)
-    | (c-d) < 4 = portion (n-4) (a, b, (c+4), d)
-    | otherwise = portion (n-4) (a, b, c, (d+4))
-        where 
-            go n (a, b, c, d)
-                | (a-b) < 4 && (a-c) < 4 && (a-d) < 4 = ((a+n), b, c, d)
-                | (b-c) < 4 && (b-d) < 4 = (a, (b+n), c, d)
-                | (c-d) < 4 = (a, b, (c+n), d)
-                | otherwise = (a, b, c, (d+n))
+addIndexesAndFilter :: Int -> [(a, Int, Bool)] -> a -> [(a, Int, Bool)]
+addIndexesAndFilter n [] a
+    | n == 0        = [(a, 0, True)]
+    | otherwise     = [(a, 0, False)]
+addIndexesAndFilter n (x@(b, m, found):_) a
+    | found         = [x]
+    | n == (m+1)    = [(a, n, True)]
+    | otherwise     = [(a, (m+1), False)]
 
-addIndexes :: [(a, Int)] -> a -> [(a, Int)]
-addIndexes [] a = [(a, 0)]
-addIndexes x@((b, n):xs) a = (a, n+1):x
+addIndexesAndChange :: Int -> a -> a -> [(a, Int)] -> [(a, Int)]
+addIndexesAndChange index new a []
+    | index == 0     = [(new, 0)]
+    | otherwise      = [(a, 0)]
+addIndexesAndChange index new a xs@((b, n):xss)
+    | index == (n+1) = (new, index):xs
+    | otherwise      = (a,   n+1):xs
 
 peek :: Array a -> Int -> a
-peek array index = fst . head . filter ((== index) . snd) . foldl addIndexes [] $ array
+peek array index = first . head . foldl (addIndexesAndFilter index) [] $ array
+    where
+        first :: (a, b, c) -> a
+        first (x, _, _) = x
 
 change :: Array a -> Int -> a -> Array a
-change array index new = fromList . fst . unzip . changeIt i new . foldr (flip addIndexes) [] $ array
+change array index new = fromList . fst . unzip . foldr (addIndexesAndChange i new) [] $ array
     where
-        changeIt :: Int -> a -> [(a, Int)] -> [(a, Int)]
-        changeIt index new [] = []
-        changeIt index new ((x, i):xs)
-            | index == i    = (new, i):xs
-            | otherwise     = (x, i):changeIt index new xs
-
         i = (length array) - index - 1
