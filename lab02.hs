@@ -42,9 +42,9 @@ histogram = foldr hist []
     where
         hist :: Eq a => a -> [(a, Int)] -> [(a, Int)]
         hist a [] = [(a, 1)]
-        hist a ((x, n):xs)
+        hist a (b@(x, n):xs)
             | a == x    = (x, n+1):xs
-            | otherwise = (x, n):hist a xs
+            | otherwise = b : hist a xs
 
 sort :: Ord a => (a, Int) -> [(a, Int)] -> [(a, Int)]
 sort x [] = [x]
